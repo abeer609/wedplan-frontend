@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WedPlan — Client
 
-## Getting Started
+Next.js frontend for WedPlan, a wedding service marketplace connecting customers with vendors (venues, catering, photography, decoration, music, makeup).
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS 4, Radix UI primitives, lucide-react icons
+- Better Auth (email/password + Google OAuth, JWT plugin) with MongoDB adapter
+- TanStack React Query, React Hook Form + Zod, Stripe.js, Sonner toasts
+
+## Prerequisites
+
+- Node.js 20+
+- MongoDB database (shared with `wedplan-server` — the backend reads the same Better Auth `user` collection)
+- Backend running at `http://localhost:8000` (see `FRONTEND.md` for the full API contract)
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # then fill in values
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required env vars (see `.env.example`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Var | Scope | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_APP_URL` | public | Canonical app URL |
+| `BETTER_AUTH_URL` | server | Base URL for auth handler + JWKS |
+| `BETTER_AUTH_SECRET` | server | HS256 fallback secret (min 32 chars) |
+| `BACKEND_URL` | server | Backend base URL used by the `/api` rewrite |
+| `MONGODB_URI` | server | Shared MongoDB connection string |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | server | Optional Google OAuth |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`next.config.ts` rewrites same-origin `/api/:path*` to `${BACKEND_URL}/api/:path*` so the browser never calls the backend host directly (avoids CORS/cookie issues).
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev    # start dev server
+npm run build  # production build
+npm run start  # serve production build
+npm run lint   # eslint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Area | Pages |
+|---|---|
+| Public | `/`, `/services`, `/services/:id` (login required for detail), `/signin`, `/signup` |
+| Onboarding | `/onboarding` (one-time role picker: customer \| vendor) |
+| Customer | `/dashboard/customer`, `/dashboard/customer/bookings`, `/dashboard/customer/profile`, `/profile` |
+| Vendor | `/dashboard/vendor`, `/dashboard/vendor/services`, `/dashboard/vendor/services/new`, `/dashboard/vendor/services/:id/edit`, `/dashboard/vendor/bookings`, `/dashboard/vendor/subscription`, `/dashboard/vendor/profile` |
+| Admin | `/dashboard/admin`, `/dashboard/admin/users`, `/dashboard/admin/services`, `/dashboard/admin/transactions` |
+| Payments | `/payment/success` (polls subscription status until premium), `/payment/cancel` |
 
-## Deploy on Vercel
+Auth model: all auth lives on this frontend via Better Auth with the `jwt()` plugin. Every protected backend request sends `Authorization: Bearer <jwt>`. New users default to `roleSelected: false` and must pick a role once. See `FRONTEND.md` for endpoint details, status-code handling (`ACCOUNT_BLOCKED`, `UPGRADE_REQUIRED`, `ALREADY_PROCESSED`, …) and edge cases.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Docs
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `FRONTEND.md` — full backend API integration guide (source of truth for wiring)
+- `frontend-plan.md` — build plan
+- `AGENTS.md` — agent working rules for this repo
