@@ -1,0 +1,1 @@
+- Prefers professional-looking UI and dislikes designs that look AI-generated. Confidence: 0.8
