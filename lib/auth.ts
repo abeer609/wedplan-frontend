@@ -67,7 +67,4 @@ export const auth = betterAuth({
     },
   },
   plugins: [jwt(), nextCookies()],
-  trustedOrigins: process.env.NEXT_PUBLIC_APP_URL
-    ? [process.env.NEXT_PUBLIC_APP_URL]
-    : undefined,
 });

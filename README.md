@@ -23,6 +23,10 @@ cp .env.example .env.local   # then fill in values
 npm run dev                  # http://localhost:3000
 ```
 
+# admin credentials
+email: admin@wedplan.local
+password: Admin@2026
+
 Required env vars (see `.env.example`):
 
 | Var | Scope | Purpose |
